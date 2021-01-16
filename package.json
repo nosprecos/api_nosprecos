@@ -2,7 +2,7 @@
   "name": "api_nosprecos",
   "version": "1.0.0",
   "description": "Api do sistema Nos Preços",
-  "main": "scr/server.js",
+  "main": "src/server.js",
   "scripts": {
     "start": "nodemon scr/server.js"
   },
