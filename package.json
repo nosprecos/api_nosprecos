@@ -1,0 +1,25 @@
+{
+  "name": "api_nosprecos",
+  "version": "1.0.0",
+  "description": "Api do sistema Nos Preços",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.js"
+
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nosprecos/api_nosprecos.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nosprecos/api_nosprecos/issues"
+  },
+  "homepage": "https://github.com/nosprecos/api_nosprecos#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "nodemon": "^2.0.7"
+  }
+}
