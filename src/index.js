@@ -1,10 +1,13 @@
 const express = require('express')
 const mongoose = require('mongoose')
 const routes = require('./routes')
+require('dotenv/config')
 
 const app = express()
 
-mongoose.connect('mongodb+srv://nosprecos:010203@cluster0.pdbxu.mongodb.net/nosprecosDB?retryWrites=true&w=majority', {
+const urlDB = process.env.URL_DB_MONGO
+
+mongoose.connect(`mongodb+srv://${urlDB}`, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 })
