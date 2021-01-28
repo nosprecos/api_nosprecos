@@ -1,5 +1,6 @@
 const axios = require('axios')
 const Customers = require('../models/customers')
+const {existsOrError, notExistsOrError, equalsOrError} = require('../validation.js')
 
 module.exports = {
     async create(request, response){
@@ -21,10 +22,9 @@ module.exports = {
         const customerEmail = await Customers.findOne({userEmailAddress})
 
         if (!customerLogin && !customerEmail){
-
             //const apiResponse = await axios.get('API DO GOOGLE')
-    
-                customer = await Customers.create({
+
+            customer = await Customers.create({
                 userLoginName,
                 userRealName,
                 userPassword,
@@ -35,7 +35,6 @@ module.exports = {
                 userFacebookUrl
             })
         }
-
         return response.json(customer)
     }
 }
