@@ -3,6 +3,12 @@ const Customers = require('../models/customers')
 const {existsOrError, notExistsOrError, equalsOrError} = require('../validation.js')
 
 module.exports = {
+    async index(request, response){
+        const customers = await Customers.find()
+
+        return response.json(customers)
+    },
+
     async create(request, response){
 
         const {
