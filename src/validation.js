@@ -1,9 +1,9 @@
 module.exports = {
 
     existsOrError(value, msg){
-        if(!value) throw response.json(msg)
+        if(!value) throw msg
         if(Array.isArray(value) && value.lenght === 0) throw msg
-        if(typeof value === 'string' && !value()) throw msg
+        if(typeof value === 'string' && !value.trim()) throw msg
     },
 
     notExistsOrError(value, msg){
@@ -16,7 +16,7 @@ module.exports = {
     },
 
     equalsOrError(valueA, valueB, msg){
-        if(value !== valueB) throw msg
+        if(valueA !== valueB) throw msg
     },
 
 }

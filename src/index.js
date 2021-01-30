@@ -10,6 +10,7 @@ const urlDB = process.env.URL_DB_MONGO
 mongoose.connect(`mongodb+srv://${urlDB}`, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
+    useCreateIndex:true
 })
 
 app.use(express.json())
