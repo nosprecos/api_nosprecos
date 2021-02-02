@@ -1,6 +1,6 @@
 const axios = require('axios')
 const Customers = require('../models/customers')
-const {existsOrError, notExistsOrError, equalsOrError} = require('../validation')
+const {existsOrError, notExistsOrError, equalsOrError, maxMin} = require('../validation')
 
 module.exports = {
     async index(request, response){
@@ -24,10 +24,13 @@ module.exports = {
 
         try{
             
-            existsOrError(userLoginName, 'Login de usuario nao informado')
+            existsOrError(userLoginName, 'Login de usuário nao informado')
             existsOrError(userRealName, 'Nome de usuario nao informado')
             existsOrError(userPassword, 'Senha de usuario nao informado')
             existsOrError(userEmailAddress, 'Email de usuario nao informado')
+
+            maxMin('min', 5, userLoginName, 'Login de usuário não atinge valor mínimo')
+            maxMin('max', 30, userLoginName, 'Login de usuário passou do valor máximo')
             
             const customerLogin = await Customers.findOne({userLoginName})
             const customerEmail = await Customers.findOne({userEmailAddress})

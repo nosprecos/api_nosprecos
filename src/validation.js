@@ -17,4 +17,13 @@ function equalsOrError(valueA, valueB, msg){
     if(valueA !== valueB) throw msg
 }
 
-module.exports = {existsOrError, notExistsOrError, equalsOrError}
+function maxMin (type, target, value, msg){
+    if(type === 'max' || type === 'MAX'){
+        if(value > target) throw msg
+    }
+    if(type === 'min' || type === 'MIN'){
+        if(value.length < target) throw msg
+    }
+}
+
+module.exports = {existsOrError, notExistsOrError, equalsOrError, maxMin}
