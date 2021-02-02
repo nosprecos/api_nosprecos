@@ -23,29 +23,18 @@ module.exports = {
         } = request.body
 
         try{
-
-            // let a = 3
-            // let b = 3
-            // let c = null
-
-            // existsOrError(c, 'Não existe')
-            // notExistsOrError(a, "Existe")
-            // equalsOrError(a, b, "Não são iguais")
             
             existsOrError(userLoginName, 'Login de usuario nao informado')
             existsOrError(userRealName, 'Nome de usuario nao informado')
-            existsOrError(userPassword, "Senha de usuario nao informado")
-            existsOrError(userEmailAddress, "Email de usuario nao informado")
+            existsOrError(userPassword, 'Senha de usuario nao informado')
+            existsOrError(userEmailAddress, 'Email de usuario nao informado')
             
             const customerLogin = await Customers.findOne({userLoginName})
             const customerEmail = await Customers.findOne({userEmailAddress})
-    
-            console.log(customerEmail.userEmailAddress)
-            console.log(customerLogin.userLoginName)
 
-            notExistsOrError(customerLogin, "Login de usuario ja utilizado")
-            notExistsOrError(customerEmail, "Email de usuario ja utilizado")
-                
+            notExistsOrError(customerLogin, 'Login de usuario ja utilizado')
+            notExistsOrError(customerEmail, 'Email de usuario ja utilizado')
+              
             customer = await Customers.create({
                     userLoginName,
                     userRealName,
