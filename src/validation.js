@@ -19,7 +19,7 @@ function equalsOrError(valueA, valueB, msg){
 
 function maxMin (type, target, value, msg){
     if(type === 'max' || type === 'MAX'){
-        if(value > target) throw msg
+        if(value.length > target) throw msg
     }
     if(type === 'min' || type === 'MIN'){
         if(value.length < target) throw msg

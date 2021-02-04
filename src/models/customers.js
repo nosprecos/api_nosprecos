@@ -32,7 +32,6 @@ const CustomersSchema = new mongoose.Schema({
     },
     userWhatsAppUrl: {
         type: String,
-        unique: true,
         minlength: 11
     },
     userInstagramUrl: String,
