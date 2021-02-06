@@ -12,6 +12,8 @@ module.exports = {
     not_secured_password: 'Senha nao esta conforme nivel de seguranca',
 
     no_email: 'Email de usuario nao informado',
-    existing_email: 'Email de usuario ja utilizado'
+    existing_email: 'Email de usuario ja utilizado',
+
+    cant_find_customer: 'Can not find customer'
 
 }

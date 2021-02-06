@@ -3,40 +3,31 @@ const Customers = require('../models/customers')
 const {existsOrError, notExistsOrError, equalsOrError, maxMin, securedPassword} = require('../validation')
 const bcrypt = require('bcryptjs')
 const error = require('../error-script')
-const mongoose = require('mongoose')
 
 module.exports = {
-/*
-    async getOne(request, response){
-        const {
-            userLoginName,
-            userEmailAddress
-        } = request.body
 
+    async get(request, response){
         try{
-            existsOrError(userLoginName, 'Login de usuário nao informado')
+            const customer = await Customers.find()
+            existsOrError(customer, error.cant_find_customer)
+            response.status(200).send(customer)
         }
         catch(msg){
-            try{
-                existsOrError(userEmailAddress, 'Email de usuário nao existent')
-            }    
-            catch(msg){
-                
-            }
-        }    
-    },*/
-
-    async index(request, response){
-
-        const { id } = request.params
-        console.log(id)
-
-        if (mongoose.Types.ObjectId.isValid(id)){ 
-            const customer = await Customers.findOne({_id: id})
-            return response.send(customer)
-            
+            return response.status(400).send(msg)
         }
-          
+    },
+
+    async getOne(request, response){
+        const { id } = request.params
+        
+        try{
+            const customer = await Customers.findOne({_id: id})
+            existsOrError(customer, error.cant_find_customer + ' by id: ' + id)
+            response.status(200).send(customer)
+        }
+        catch(msg){
+            return response.status(400).send(msg)
+        } 
     },
 
     async create(request, response){
