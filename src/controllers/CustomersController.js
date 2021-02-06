@@ -1,13 +1,42 @@
 const axios = require('axios')
 const Customers = require('../models/customers')
-const {existsOrError, notExistsOrError, equalsOrError, maxMin} = require('../validation')
+const {existsOrError, notExistsOrError, equalsOrError, maxMin, securedPassword} = require('../validation')
 const bcrypt = require('bcryptjs')
+const error = require('../error-script')
+const mongoose = require('mongoose')
 
 module.exports = {
-    async index(request, response){
-        const customers = await Customers.find()
+/*
+    async getOne(request, response){
+        const {
+            userLoginName,
+            userEmailAddress
+        } = request.body
 
-        return response.json(customers)
+        try{
+            existsOrError(userLoginName, 'Login de usuário nao informado')
+        }
+        catch(msg){
+            try{
+                existsOrError(userEmailAddress, 'Email de usuário nao existent')
+            }    
+            catch(msg){
+                
+            }
+        }    
+    },*/
+
+    async index(request, response){
+
+        const { id } = request.params
+        console.log(id)
+
+        if (mongoose.Types.ObjectId.isValid(id)){ 
+            const customer = await Customers.findOne({_id: id})
+            return response.send(customer)
+            
+        }
+          
     },
 
     async create(request, response){
@@ -28,29 +57,28 @@ module.exports = {
 
         try{
             
-            existsOrError(userLoginName, 'Login de usuário nao informado')
-            existsOrError(userRealName, 'Nome de usuario nao informado')
-            existsOrError(userPassword, 'Senha de usuario nao informado')
-            existsOrError(userEmailAddress, 'Email de usuario nao informado')
+            existsOrError(userLoginName, error.no_username)
+            existsOrError(userRealName, error.no_realname)
+            existsOrError(userPassword, error.no_password)
+            existsOrError(userEmailAddress, error.no_email)
 
-            equalsOrError(userPassword, userConfirmPassword, 'Senhas não são iguais')
+            equalsOrError(userPassword, userConfirmPassword, error.mismatch_password)
+
+            securedPassword(3, userPassword, error.not_secured_password)
 
             userLoginName = userLoginName.toLowerCase()
             userEmailAddress = userEmailAddress.toLowerCase()
 
-            maxMin('min', 5, userLoginName, 'Login de usuário não atinge valor mínimo')
-            maxMin('max', 30, userLoginName, 'Login de usuário passou do valor máximo')
+            maxMin('min', 5, userLoginName, error.min_char_user)
+            maxMin('max', 30, userLoginName, error.max_char_user)
 
-            maxMin('max', 60, userRealName, 'Nome de usuário passou do valor máximo')
-
-            maxMin('min', 8, userPassword, 'Senha de usuário não atinge valor mínimo')
-            maxMin('max', 60, userPassword, 'Senha de usuário passou do valor máximo')
+            maxMin('max', 60, userRealName, error.max_char_name)
             
             const customerLogin = await Customers.findOne({userLoginName})
             const customerEmail = await Customers.findOne({userEmailAddress})
             
-            notExistsOrError(customerLogin, 'Login de usuario ja utilizado')
-            notExistsOrError(customerEmail, 'Email de usuario ja utilizado')
+            notExistsOrError(customerLogin, error.existing_username)
+            notExistsOrError(customerEmail, error.existing_email)
 
             userPassword = encryptPassword(userPassword)
             delete userConfirmPassword
