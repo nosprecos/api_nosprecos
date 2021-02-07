@@ -1,10 +1,22 @@
 const passwordValidator = require('password-validator')
 
+/**
+ * Check if a variable holds a null a throw a message
+ * @param {AnyType} value 
+ * @param {String} msg 
+ */
+
 function existsOrError(value, msg){
     if(!value) throw msg
     if(Array.isArray(value) && value.lenght === 0) throw msg
     if(typeof value === 'string' && !value.trim()) throw msg
 }
+
+/**
+ * Check if a variable holds a null a throw a message
+ * @param {AnyType} value 
+ * @param {String} msg 
+ */
 
 function notExistsOrError(value, msg){
     try {
@@ -14,6 +26,13 @@ function notExistsOrError(value, msg){
     }
     throw msg
 }
+
+/**
+ * Check if two variables are equals
+ * @param {AnyType} valueA 
+ * @param {AnyType} valueB 
+ * @param {String} msg 
+ */
 
 function equalsOrError(valueA, valueB, msg){
     if(valueA !== valueB) throw msg
@@ -29,12 +48,15 @@ function maxMin (type, target, value, msg){
 }
 
 /**
-    securityLevel:
+ * securityLevel:
     (0) or null Minimum 8 and Maximum 60 characters
     (1) Level 0 + an uppercase letter and a lowercase letter
     (2) Level 1 + a number
     (3) Level 2 + a special character such as ('!', '@', '#', '$', '%', '&', '*')
-**/
+ * @param {Integer} securityLevel 
+ * @param {AnyType} value 
+ * @param {String} msg 
+ */
 
 function securedPassword (securityLevel, value, msg){
     let schema = new passwordValidator()
