@@ -3,7 +3,8 @@ const CustomersController = require('./controllers/CustomersController')
 
 const routes = Router()
 
-routes.post('/customers', CustomersController.create)
+routes.post('/signup', CustomersController.create)
+routes.post('/signin', CustomersController.authenticate)
 routes.get('/customers/:id', CustomersController.getOne)
 routes.get('/customers/', CustomersController.get)
 
