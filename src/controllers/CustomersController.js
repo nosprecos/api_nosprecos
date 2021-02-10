@@ -122,10 +122,10 @@ module.exports = {
     },
 
     async remove(request, response){
-        const id = request.params
+        const { id } = request.params
 
         try{
-            const customer = await Customers.findOneAndRemove(id)
+            const customer = await Customers.findOneAndRemove({_id: id})
             existsOrError(customer, `${error.cant_find_customer} pela id: ${id}`)
             response.status(200).send('usuário deletado com sucesso')
         }
