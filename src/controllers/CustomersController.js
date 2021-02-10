@@ -52,10 +52,10 @@ module.exports = {
     },
 
     async getOne(request, response){
-        const { id } = request.params
-        
+        const id = request.query
+
         try{
-            const customer = await Customers.findOne({_id: id})
+            const customer = await Customers.findOne(id)
             existsOrError(customer, `${error.cant_find_customer} pela id: ${id}`)
             response.status(200).send(customer)
         }
@@ -76,7 +76,6 @@ module.exports = {
             userRealName,
             userPassword,
             userConfirmPassword,
-            userState,
             userEmailAddress
         } = request.body
 
@@ -112,7 +111,6 @@ module.exports = {
                     userLoginName,
                     userRealName,
                     userPassword,
-                    userState,
                     userEmailAddress
                 })
 
@@ -121,7 +119,20 @@ module.exports = {
         catch(msg){
             return response.status(400).send(msg)
         }
-    }
+    },
+
+    async remove(request, response){
+        const id = request.params
+
+        try{
+            const customer = await Customers.findOneAndRemove(id)
+            existsOrError(customer, `${error.cant_find_customer} pela id: ${id}`)
+            response.status(200).send('usuário deletado com sucesso')
+        }
+        catch(msg){
+            return response.status(400).send(msg)
+        } 
+    },
 }
 
 //const apiResponse = await axios.get('API DO GOOGLE')

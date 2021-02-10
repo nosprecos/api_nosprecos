@@ -20,9 +20,6 @@ const CustomersSchema = new mongoose.Schema({
         maxlength: 60,
         minlength: 8
     },
-    userState: { //Veriricar se sera necessario para o back-end
-        type: Boolean
-    },
     userEmailAddress: {
         type: String,
         require: true,
