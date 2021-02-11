@@ -66,10 +66,14 @@ module.exports = {
 
     async create(request, response){
 
+        let customer = null
+
         const encryptPassword = password => {
             const salt = bcrypt.genSaltSync(10)
             return hash = bcrypt.hashSync(password, salt)
         }
+        
+        const { id } = request.params
 
         let {
             userLoginName,
@@ -80,40 +84,52 @@ module.exports = {
         } = request.body
 
         try{
-            
-            existsOrError(userLoginName, error.no_username)
-            existsOrError(userRealName, error.no_realname)
-            existsOrError(userPassword, error.no_password)
-            existsOrError(userEmailAddress, error.no_email)
 
-            equalsOrError(userPassword, userConfirmPassword, error.mismatch_password)
+            if(!id){
+                existsOrError(userLoginName, error.no_username)
+                existsOrError(userRealName, error.no_realname)
+                existsOrError(userPassword, error.no_password)
+                existsOrError(userEmailAddress, error.no_email)
+            }
 
-            securedPassword(3, userPassword, error.not_secured_password)
+            if(userLoginName){
+                userLoginName = userLoginName.toLowerCase()
+                maxMin('min', 5, userLoginName, error.min_char_user)
+                maxMin('max', 30, userLoginName, error.max_char_user)
+                const customerLogin = await Customers.findOne({userLoginName: userLoginName})
+                notExistsOrError(customerLogin, error.existing_username)
+            }
 
-            userLoginName = userLoginName.toLowerCase()
-            userEmailAddress = userEmailAddress.toLowerCase()
+            if(userRealName) maxMin('max', 60, userRealName, error.max_char_name)
 
-            maxMin('min', 5, userLoginName, error.min_char_user)
-            maxMin('max', 30, userLoginName, error.max_char_user)
+            if(userEmailAddress){
+                userEmailAddress = userEmailAddress.toLowerCase()
+                const customerEmail = await Customers.findOne({userEmailAddress: userEmailAddress})
+                notExistsOrError(customerEmail, error.existing_email)
+            }
 
-            maxMin('max', 60, userRealName, error.max_char_name)
-            
-            const customerLogin = await Customers.findOne({userLoginName: userLoginName})
-            const customerEmail = await Customers.findOne({userEmailAddress: userEmailAddress})
-            
-            notExistsOrError(customerLogin, error.existing_username)
-            notExistsOrError(customerEmail, error.existing_email)
+            if(userPassword){
+                equalsOrError(userPassword, userConfirmPassword, error.mismatch_password)
+                securedPassword(3, userPassword, error.not_secured_password)
+                userPassword = encryptPassword(userPassword)
+                delete userConfirmPassword
+            }
 
-            userPassword = encryptPassword(userPassword)
-            delete userConfirmPassword
-              
-            customer = await Customers.create({
-                    userLoginName,
-                    userRealName,
-                    userPassword,
-                    userEmailAddress
-                })
+            if(!id) {
+                customer = await Customers.create({
+                        userLoginName,
+                        userRealName,
+                        userPassword,
+                        userEmailAddress,
+                    })
+            }
 
+            if(id){
+
+                let user = request.body
+                customer = await Customers.findOneAndUpdate({_id: id}, user, {new: true})
+                existsOrError(customer, `${error.cant_find_customer} pela id: ${id}`)  
+            }
             response.status(200).send(customer)   
         }
         catch(msg){
@@ -132,7 +148,7 @@ module.exports = {
         catch(msg){
             return response.status(400).send(msg)
         } 
-    },
+    }
 }
 
 //const apiResponse = await axios.get('API DO GOOGLE')
