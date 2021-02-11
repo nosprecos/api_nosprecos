@@ -1,4 +1,5 @@
 const passwordValidator = require('password-validator')
+const emailValidator = require("email-validator")
 
 /**
  * Check if a variable holds a null a throw a message
@@ -82,6 +83,10 @@ function securedPassword (securityLevel, value, msg){
         default:
             if (!schema.validate(value)) throw msg
     }
+}   
+
+function verifyEmail(value, msg){
+    if(!emailValidator.validate(value)) throw msg
 }
 
-module.exports = {existsOrError, notExistsOrError, equalsOrError, maxMin, securedPassword}
+module.exports = {existsOrError, notExistsOrError, equalsOrError, maxMin, securedPassword, verifyEmail}

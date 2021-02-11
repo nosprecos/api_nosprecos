@@ -1,6 +1,6 @@
 const axios = require('axios')
 const Customers = require('../models/customers')
-const {existsOrError, notExistsOrError, equalsOrError, maxMin, securedPassword} = require('../validation')
+const {existsOrError, notExistsOrError, equalsOrError, maxMin, securedPassword, verifyEmail} = require('../validation')
 const bcrypt = require('bcryptjs')
 const error = require('../error-script')
 
@@ -65,31 +65,38 @@ module.exports = {
     },
 
     async create(request, response){
-
-        let customer = null
+        let customer
+        const { id } = request.params
 
         const encryptPassword = password => {
             const salt = bcrypt.genSaltSync(10)
             return hash = bcrypt.hashSync(password, salt)
         }
-        
-        const { id } = request.params
 
+        let user = request.body
         let {
             userLoginName,
             userRealName,
             userPassword,
+            userNewPassword,
             userConfirmPassword,
             userEmailAddress
         } = request.body
 
         try{
 
+            existsOrError(userPassword, error.no_password)
+
             if(!id){
                 existsOrError(userLoginName, error.no_username)
                 existsOrError(userRealName, error.no_realname)
-                existsOrError(userPassword, error.no_password)
+                existsOrError(userConfirmPassword, error.no_confirm_pass)
                 existsOrError(userEmailAddress, error.no_email)
+            }
+
+            else{
+                customer = await Customers.findOne({_id: id})
+                existsOrError(customer, `${error.cant_find_customer} pela id: ${id}`)
             }
 
             if(userLoginName){
@@ -106,30 +113,48 @@ module.exports = {
                 userEmailAddress = userEmailAddress.toLowerCase()
                 const customerEmail = await Customers.findOne({userEmailAddress: userEmailAddress})
                 notExistsOrError(customerEmail, error.existing_email)
+                verifyEmail(userEmailAddress, error.invalid_email)
             }
 
-            if(userPassword){
+            if(!id){
                 equalsOrError(userPassword, userConfirmPassword, error.mismatch_password)
                 securedPassword(3, userPassword, error.not_secured_password)
                 userPassword = encryptPassword(userPassword)
                 delete userConfirmPassword
-            }
 
-            if(!id) {
                 customer = await Customers.create({
-                        userLoginName,
-                        userRealName,
-                        userPassword,
-                        userEmailAddress,
-                    })
+                    userLoginName,
+                    userRealName,
+                    userPassword,
+                    userEmailAddress
+                })
             }
 
-            if(id){
-
-                let user = request.body
-                customer = await Customers.findOneAndUpdate({_id: id}, user, {new: true})
-                existsOrError(customer, `${error.cant_find_customer} pela id: ${id}`)  
+            if(userNewPassword){
+                existsOrError(userConfirmPassword, error.no_confirm_pass)
+                equalsOrError(userNewPassword, userConfirmPassword, error.mismatch_password)
+                securedPassword(3, userNewPassword, error.not_secured_password)
+                user.userPassword = encryptPassword(userNewPassword)
+                delete user.userNewPassword
+                delete userConfirmPassword
             }
+
+            if(id && userNewPassword){
+                if(bcrypt.compareSync(userPassword, customer.userPassword))
+                    customer = await Customers.findOneAndUpdate({_id: id}, user, {new: true})
+                else
+                    throw error.wrong_password
+            }
+            else if(id){
+                if(bcrypt.compareSync(userPassword, customer.userPassword)){
+                    delete user.userPassword
+                    customer = await Customers.findOneAndUpdate({_id: id}, user, {new: true})
+                    console.log(customer)
+                }
+                else
+                    throw error.wrong_password
+            }
+            
             response.status(200).send(customer)   
         }
         catch(msg){
