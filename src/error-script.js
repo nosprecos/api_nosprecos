@@ -19,6 +19,10 @@ module.exports = {
 
     cant_find_customer: 'Nao foi possivel encontrar customer',
     login_failed: 'Usuário ou senha incorreta',
-    no_login_name: 'Nome ou email de usuario nao informado'
+    no_login_name: 'Nome ou email de usuario nao informado',
+
+    length_id: 'Tamanho do ID informado incorreto',
+
+    max_char_WhatsApp: 'Número do WhatsApp passou do valor máximo'
 
 }

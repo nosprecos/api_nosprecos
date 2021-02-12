@@ -28,7 +28,7 @@ const CustomersSchema = new mongoose.Schema({
     },
     userWhatsAppUrl: {
         type: String,
-        minlength: 11
+        minlength: 15
     },
     userInstagramUrl: String,
     userFacebookUrl: String

@@ -39,12 +39,23 @@ function equalsOrError(valueA, valueB, msg){
     if(valueA !== valueB) throw msg
 }
 
-function maxMin (type, target, value, msg){
+/**
+ * Check if a value meets a target condition (type) passed
+ * @param {String} type 
+ * @param {Integer} target 
+ * @param {String} value 
+ * @param {String} msg 
+ */
+
+function maxMinEquals (type, target, value, msg){
     if(type === 'max' || type === 'MAX'){
         if(value.length > target) throw msg
     }
     if(type === 'min' || type === 'MIN'){
         if(value.length < target) throw msg
+    }
+    if(type === 'equals' || type === 'EQUALS'){
+        if(value.length != target) throw msg
     }
 }
 
@@ -89,4 +100,4 @@ function verifyEmail(value, msg){
     if(!emailValidator.validate(value)) throw msg
 }
 
-module.exports = {existsOrError, notExistsOrError, equalsOrError, maxMin, securedPassword, verifyEmail}
+module.exports = {existsOrError, notExistsOrError, equalsOrError, maxMinEquals, securedPassword, verifyEmail}

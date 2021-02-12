@@ -1,6 +1,6 @@
 const axios = require('axios')
 const Customers = require('../models/customers')
-const {existsOrError, notExistsOrError, equalsOrError, maxMin, securedPassword, verifyEmail} = require('../validation')
+const {existsOrError, notExistsOrError, equalsOrError, maxMinEquals, securedPassword, verifyEmail} = require('../validation')
 const bcrypt = require('bcryptjs')
 const error = require('../error-script')
 
@@ -95,19 +95,20 @@ module.exports = {
             }
 
             else{
+                maxMinEquals('equals', 24, id, error.length_id)
                 customer = await Customers.findOne({_id: id})
                 existsOrError(customer, `${error.cant_find_customer} pela id: ${id}`)
             }
 
             if(userLoginName){
                 userLoginName = userLoginName.toLowerCase()
-                maxMin('min', 5, userLoginName, error.min_char_user)
-                maxMin('max', 30, userLoginName, error.max_char_user)
+                maxMinEquals('min', 5, userLoginName, error.min_char_user)
+                maxMinEquals('max', 30, userLoginName, error.max_char_user)
                 const customerLogin = await Customers.findOne({userLoginName: userLoginName})
                 notExistsOrError(customerLogin, error.existing_username)
             }
 
-            if(userRealName) maxMin('max', 60, userRealName, error.max_char_name)
+            if(userRealName) maxMinEquals('max', 60, userRealName, error.max_char_name)
 
             if(userEmailAddress){
                 userEmailAddress = userEmailAddress.toLowerCase()
@@ -139,6 +140,10 @@ module.exports = {
                 delete userConfirmPassword
             }
 
+            if(user.userWhatsAppUrl){
+                maxMinEquals('max', 15, user.userWhatsAppUrl, error.max_char_WhatsApp)
+            }
+
             if(id && userNewPassword){
                 if(bcrypt.compareSync(userPassword, customer.userPassword))
                     customer = await Customers.findOneAndUpdate({_id: id}, user, {new: true})
@@ -149,7 +154,6 @@ module.exports = {
                 if(bcrypt.compareSync(userPassword, customer.userPassword)){
                     delete user.userPassword
                     customer = await Customers.findOneAndUpdate({_id: id}, user, {new: true})
-                    console.log(customer)
                 }
                 else
                     throw error.wrong_password
@@ -164,11 +168,20 @@ module.exports = {
 
     async remove(request, response){
         const { id } = request.params
+        let { userPassword } = request.body
+        let customer
 
         try{
-            const customer = await Customers.findOneAndRemove({_id: id})
+            maxMinEquals('equals', 24, id, error.length_id)
+            customer = await Customers.findOne({_id: id})
             existsOrError(customer, `${error.cant_find_customer} pela id: ${id}`)
-            response.status(200).send('usuário deletado com sucesso')
+            existsOrError(userPassword, error.no_password)
+            if(bcrypt.compareSync(userPassword, customer.userPassword)){
+                customer = await Customers.findOneAndRemove({_id: id})
+                response.status(200).send('Usuário deletado com sucesso')
+            }
+            else
+                throw error.login_failed
         }
         catch(msg){
             return response.status(400).send(msg)
