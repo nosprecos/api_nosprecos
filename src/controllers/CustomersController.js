@@ -4,6 +4,7 @@ const {existsOrError, notExistsOrError, equalsOrError, maxMinEquals, securedPass
 const bcrypt = require('bcryptjs')
 const error = require('../error-script')
 const fs = require('fs')
+const sharp = require('sharp')
 
 module.exports = {
 
@@ -193,18 +194,22 @@ module.exports = {
 
     async photo(req, res){
         const { id } = req.params
-        let binData = fs.readFileSync(req.file.path)
-        let ProfilePicture = binData.toString('base64') // binary-base64 encoding
-
-        try{
-                maxMinEquals('equals', 24, id, error.length_id)
-                const customer = await Customers.findOneAndUpdate({_id: id}, {userProfilePicture: ProfilePicture}, {new: true})
-                existsOrError(customer, `${error.cant_find_customer} pela id: ${id}`)
-                res.status(200).send(customer)
-        }
-        catch(msg){
-            return res.status(400).send(msg)
-        }
+        sharp(req.file.path)
+            .rotate()
+            .resize({ width: 200 })
+            .toBuffer()
+            .then(async data => {
+                imgBase64 = new Buffer.from(data).toString('base64')
+                try{
+                    maxMinEquals('equals', 24, id, error.length_id)
+                    const customer = await Customers.findOneAndUpdate({_id: id}, {userProfilePicture: imgBase64}, {new: true})
+                    existsOrError(customer, `${error.cant_find_customer} pela id: ${id}`)
+                    res.status(200).send(customer)
+                }
+                catch(msg){
+                    return res.status(400).send(msg)
+                }
+            })
     }
 }
 
