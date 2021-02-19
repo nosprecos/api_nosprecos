@@ -4,15 +4,14 @@ const {existsOrError, notExistsOrError, equalsOrError, maxMinEquals, securedPass
 const bcrypt = require('bcryptjs')
 const error = require('../error-script')
 const fs = require('fs')
-const { response } = require('express')
 
 module.exports = {
 
-    async authenticate(request, response){
+    async authenticate(req, res){
         let {
             userLogin,
             userPassword
-        } = request.body
+        } = req.body
 
         try{
             existsOrError(userLogin, error.no_login_name)
@@ -23,13 +22,13 @@ module.exports = {
 
             if(customer[0]){
                 if(bcrypt.compareSync(userPassword, customer[0].userPassword))
-                    return response.status(200).send(customer[0])
+                    return res.status(200).send(customer[0])
                 else
                     throw error.login_failed
             }
             if(customer[1]){
                 if(bcrypt.compareSync(userPassword, customer[1].userPassword))
-                    return response.status(200).send(customer[1])
+                    return res.status(200).send(customer[1])
                 else
                     throw error.login_failed
             }
@@ -38,44 +37,44 @@ module.exports = {
             }
         }
         catch(msg){
-                return response.status(400).send(msg)
+                return res.status(400).send(msg)
         }
     },
 
-    async get(request, response){
+    async get(req, res){
         try{
             const customer = await Customers.find()
             existsOrError(customer, error.cant_find_customer)
-            response.status(200).send(customer)
+            res.status(200).send(customer)
         }
         catch(msg){
-            return response.status(400).send(msg)
+            return res.status(400).send(msg)
         }
     },
 
-    async getOne(request, response){
-        const id = request.query
+    async getOne(req, res){
+        const id = req.query
 
         try{
             const customer = await Customers.findOne(id)
             existsOrError(customer, `${error.cant_find_customer} pela id: ${id}`)
-            response.status(200).send(customer)
+            res.status(200).send(customer)
         }
         catch(msg){
-            return response.status(400).send(msg)
+            return res.status(400).send(msg)
         } 
     },
 
-    async create(request, response){
+    async create(req, res){
         let customer
-        const { id } = request.params
+        const { id } = req.params
 
         const encryptPassword = password => {
             const salt = bcrypt.genSaltSync(10)
             return hash = bcrypt.hashSync(password, salt)
         }
 
-        let user = request.body
+        let user = req.body
         let {
             userLoginName,
             userRealName,
@@ -83,7 +82,7 @@ module.exports = {
             userNewPassword,
             userConfirmPassword,
             userEmailAddress
-        } = request.body
+        } = req.body
 
         try{
 
@@ -163,45 +162,45 @@ module.exports = {
                     throw error.wrong_password
             }
             
-            response.status(200).send(customer)   
+            res.status(200).send(customer)   
         }
         catch(msg){
-            return response.status(400).send(msg)
+            return res.status(400).send(msg)
         }
     },
 
-    async remove(request, response){
-        const { id } = request.params
-        let { userPassword } = request.body
+    async remove(req, res){
+        const { id } = req.params
+        let { userPassword } = req.body
         let customer
 
         try{
             maxMinEquals('equals', 24, id, error.length_id)
-            customer = await Customers.findOne({_id: id})
+            customer = await Customers.findOne({_id: id}) //Get customer to verify password
             existsOrError(customer, `${error.cant_find_customer} pela id: ${id}`)
             existsOrError(userPassword, error.no_password)
             if(bcrypt.compareSync(userPassword, customer.userPassword)){
                 customer = await Customers.findOneAndRemove({_id: id})
-                response.status(200).send('Usuário deletado com sucesso')
+                res.status(200).send('Usuário deletado com sucesso')
             }
             else
                 throw error.login_failed
         }
         catch(msg){
-            return response.status(400).send(msg)
+            return res.status(400).send(msg)
         } 
     },
 
     async photo(req, res){
         const { id } = req.params
-        let biData = fs.readFileSync(req.file.path)
-        let userProfilePicture = biData.toString('base64') // binary-base64 encoding
+        let binData = fs.readFileSync(req.file.path)
+        let ProfilePicture = binData.toString('base64') // binary-base64 encoding
 
         try{
                 maxMinEquals('equals', 24, id, error.length_id)
-                const customer = await Customers.findOneAndUpdate({_id: id}, userProfilePicture, {new: true})
+                const customer = await Customers.findOneAndUpdate({_id: id}, {userProfilePicture: ProfilePicture}, {new: true})
                 existsOrError(customer, `${error.cant_find_customer} pela id: ${id}`)
-                res.status(200).send('Foto de usuario atualizada com sucesso')
+                res.status(200).send(customer)
         }
         catch(msg){
             return res.status(400).send(msg)

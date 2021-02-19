@@ -1,17 +1,17 @@
 const multer = require('multer')
 const path = require('path')
 
-let imgUpload = multer({
+const imgUpload = multer({
     storage: multer.diskStorage({
 
         destination: (req, file, cb) =>{
             cb(null, path.resolve("tmp", "uploads"))
         },
-
+        /*
         filename: (req, file, cb) =>{
             const {id} = req.params
             cb(null, `${id}-profilepicture${path.extname(file.originalname)}`)
-        }
+        }*/
     }),
 
     limits: {
@@ -28,7 +28,8 @@ let imgUpload = multer({
         if(allowedMimes.includes(file.mimetype)){
             cb(null, true)
         } else cb(new Error('Tipo de arquivo de foto nao permitido'))
-    }
+    },
+
 })
 
 module.exports = {imgUpload}
