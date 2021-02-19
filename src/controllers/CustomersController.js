@@ -3,6 +3,8 @@ const Customers = require('../models/customers')
 const {existsOrError, notExistsOrError, equalsOrError, maxMinEquals, securedPassword, verifyEmail} = require('../validation')
 const bcrypt = require('bcryptjs')
 const error = require('../error-script')
+const fs = require('fs')
+const { response } = require('express')
 
 module.exports = {
 
@@ -99,8 +101,10 @@ module.exports = {
                 customer = await Customers.findOne({_id: id})
                 existsOrError(customer, `${error.cant_find_customer} pela id: ${id}`)
             }
+            console.log(typeof userLoginName)
 
-            if(userLoginName){
+            if(userLoginName || userLoginName.length == 0){
+                
                 userLoginName = userLoginName.toLowerCase()
                 maxMinEquals('min', 5, userLoginName, error.min_char_user)
                 maxMinEquals('max', 30, userLoginName, error.max_char_user)
@@ -186,6 +190,22 @@ module.exports = {
         catch(msg){
             return response.status(400).send(msg)
         } 
+    },
+
+    async photo(req, res){
+        const { id } = req.params
+        let biData = fs.readFileSync(req.file.path)
+        let userProfilePicture = biData.toString('base64') // binary-base64 encoding
+
+        try{
+                maxMinEquals('equals', 24, id, error.length_id)
+                const customer = await Customers.findOneAndUpdate({_id: id}, userProfilePicture, {new: true})
+                existsOrError(customer, `${error.cant_find_customer} pela id: ${id}`)
+                res.status(200).send('Foto de usuario atualizada com sucesso')
+        }
+        catch(msg){
+            return res.status(400).send(msg)
+        }
     }
 }
 

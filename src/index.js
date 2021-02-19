@@ -7,7 +7,7 @@ const app = express()
 
 const urlDB = process.env.URL_DB_MONGO
 
-mongoose.connect(`mongodb+srv://${urlDB}`, {
+mongoose.connect(`mongodb+srv://${urlDB}`,{
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useCreateIndex: true,
@@ -20,4 +20,3 @@ app.use(routes)
 const port = 3333
 
 app.listen(port)
-            

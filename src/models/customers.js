@@ -14,6 +14,11 @@ const CustomersSchema = new mongoose.Schema({
         require: true,
         maxlength: 60
     },
+
+    userProfilePicture:{
+        type: String,
+    },
+    
     userPassword: {
         type: String,
         require: true,
