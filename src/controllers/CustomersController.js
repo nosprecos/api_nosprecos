@@ -192,6 +192,7 @@ module.exports = {
     },
 
     async photo(req, res){
+        //console.log(req.file)
         const { id } = req.params
         try{
             const imgBase64 = await prepImg(req.file.path, 200, 'Deu erro de imagem') //prepImg to make file ready to be inserted into DB
