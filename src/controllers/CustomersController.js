@@ -3,8 +3,7 @@ const Customers = require('../models/customers')
 const {existsOrError, notExistsOrError, equalsOrError, maxMinEquals, securedPassword, verifyEmail} = require('../validation')
 const bcrypt = require('bcryptjs')
 const error = require('../error-script')
-const fs = require('fs')
-const sharp = require('sharp')
+const {prepImg} = require('../utils/utils')
 
 module.exports = {
 
@@ -194,7 +193,22 @@ module.exports = {
 
     async photo(req, res){
         const { id } = req.params
-        sharp(req.file.path)
+        try{
+            const imgBase64 = await prepImg(req.file.path, 200, 'Deu erro de imagem') //prepImg to make file ready to be inserted into DB
+
+        
+            maxMinEquals('equals', 24, id, error.length_id)
+            const customer = await Customers.findOneAndUpdate({_id: id}, {userProfilePicture: imgBase64}, {new: true})
+            existsOrError(customer, `${error.cant_find_customer} pela id: ${id}`)
+            res.status(200).send(customer)
+        }
+        catch(msg){
+            return res.status(400).send(msg) 
+        }
+
+
+
+        /*sharp(req.file.path)
             .rotate()
             .resize({ width: 200 })
             .toBuffer()
@@ -209,7 +223,7 @@ module.exports = {
                 catch(msg){
                     return res.status(400).send(msg)
                 }
-            })
+            })*/
     }
 }
 

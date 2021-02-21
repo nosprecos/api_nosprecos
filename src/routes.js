@@ -1,14 +1,19 @@
 const { Router } = require('express')
 const CustomersController = require('./controllers/CustomersController')
-let file = require('./controllers/middleware/config-multer')
-const multer = require('multer')
+const {imgUpload, multer} = require('./controllers/middleware/config-multer')
 
 
 const routes = Router()
 
 routes.post('/signup', CustomersController.create)
 routes.post('/signin', CustomersController.authenticate)
-routes.post('/customer/update/photo/:id', file.imgUpload.single('picture'), CustomersController.photo)
+routes.post('/customer/update/photo/:id', function (req, res, next){
+    multer(imgUpload).single('picture')(req, res, async function(err){
+        if (err instanceof multer.MulterError) return res.status(400).send(err.field)
+        else if(err) return res.status(400).send(err)
+        next()
+    })
+}, CustomersController.photo)
 
 routes.get('/customer/list', CustomersController.getOne)
 routes.get('/customers', CustomersController.get)
