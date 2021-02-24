@@ -3,6 +3,7 @@ const sharp = require('sharp')
 function prepImg(image, target, msg){
     
     return sharp(image)
+    .toFormat('jpeg')
     .rotate()
     .resize({width: target})
     .toBuffer()

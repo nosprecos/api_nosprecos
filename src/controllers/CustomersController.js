@@ -4,9 +4,9 @@ const {existsOrError, notExistsOrError, equalsOrError, maxMinEquals, securedPass
 const bcrypt = require('bcryptjs')
 const error = require('../error-script')
 const {prepImg} = require('../utils/utils')
+const ID_LENGTH_DB = 24
 
 module.exports = {
-
     async authenticate(req, res){
         let {
             userLogin,
@@ -96,14 +96,13 @@ module.exports = {
             }
 
             else{
-                maxMinEquals('equals', 24, id, error.length_id)
+                maxMinEquals('equals', ID_LENGTH_DB, id, error.length_id)
                 customer = await Customers.findOne({_id: id})
                 existsOrError(customer, `${error.cant_find_customer} pela id: ${id}`)
             }
-            console.log(typeof userLoginName)
 
-            if(userLoginName || userLoginName.length == 0){
-                
+            if(userLoginName){
+                console.log('Entrou')
                 userLoginName = userLoginName.toLowerCase()
                 maxMinEquals('min', 5, userLoginName, error.min_char_user)
                 maxMinEquals('max', 30, userLoginName, error.max_char_user)
@@ -114,6 +113,7 @@ module.exports = {
             if(userRealName) maxMinEquals('max', 60, userRealName, error.max_char_name)
 
             if(userEmailAddress){
+                console.log(userEmailAddress)
                 userEmailAddress = userEmailAddress.toLowerCase()
                 const customerEmail = await Customers.findOne({userEmailAddress: userEmailAddress})
                 notExistsOrError(customerEmail, error.existing_email)
@@ -175,7 +175,7 @@ module.exports = {
         let customer
 
         try{
-            maxMinEquals('equals', 24, id, error.length_id)
+            maxMinEquals('equals', ID_LENGTH_DB, id, error.length_id)
             customer = await Customers.findOne({_id: id}) //Get customer to verify password
             existsOrError(customer, `${error.cant_find_customer} pela id: ${id}`)
             existsOrError(userPassword, error.no_password)
@@ -192,13 +192,10 @@ module.exports = {
     },
 
     async photo(req, res){
-        //console.log(req.file)
         const { id } = req.params
         try{
             const imgBase64 = await prepImg(req.file.path, 200, 'Deu erro de imagem') //prepImg to make file ready to be inserted into DB
-
-        
-            maxMinEquals('equals', 24, id, error.length_id)
+            maxMinEquals('equals', ID_LENGTH_DB, id, error.length_id)
             const customer = await Customers.findOneAndUpdate({_id: id}, {userProfilePicture: imgBase64}, {new: true})
             existsOrError(customer, `${error.cant_find_customer} pela id: ${id}`)
             res.status(200).send(customer)
@@ -206,25 +203,6 @@ module.exports = {
         catch(msg){
             return res.status(400).send(msg) 
         }
-
-
-
-        /*sharp(req.file.path)
-            .rotate()
-            .resize({ width: 200 })
-            .toBuffer()
-            .then(async data => {
-                imgBase64 = new Buffer.from(data).toString('base64')
-                try{
-                    maxMinEquals('equals', 24, id, error.length_id)
-                    const customer = await Customers.findOneAndUpdate({_id: id}, {userProfilePicture: imgBase64}, {new: true})
-                    existsOrError(customer, `${error.cant_find_customer} pela id: ${id}`)
-                    res.status(200).send(customer)
-                }
-                catch(msg){
-                    return res.status(400).send(msg)
-                }
-            })*/
     }
 }
 

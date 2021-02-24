@@ -1,30 +1,37 @@
 const multer = require('multer')
 const path = require('path')
-const maxSizeFile = 1 * 1024 * 1024 //5 mb
+const maxSizeFile = 5 * 1024 * 1024 //5 mb
 
 module.exports = {
-    middlewareMulter (req, res, next){
+    uploadImg (req, res, next){
         multer(config).single('picture')(req, res, function(err){
-            //if (req.file.size > maxSizeFile) res.status(400).send('erro')
-            if (err instanceof multer.MulterError) return res.status(400).send(err.field)
-            else if(err) return res.status(400).send(err)
-            next()
+            if (err instanceof multer.MulterError){
+                switch(err.code){
+                    case 'LIMIT_FILE_SIZE':
+                        return res.status(400).send(`Arquivo de foto ultrapassa ${maxSizeFile / Math.pow(1024, 2)} mb`)
+                    case 'LIMIT_UNEXPECTED_FILE':
+                        return res.status(400).send('Tipo de arquivo nao permitido')
+                    default:
+                        return res.status(400).send(err)
+                }
+            }
+            else if (err){ 
+                return res.status(400).send(err)
+            }    
+            else next()
         })
     }
 }
 
-let config = {
+const config = {
     storage: multer.diskStorage({
-
         destination: (req, file, cb) =>{
             cb(null, path.resolve("tmp", "uploads"))
         }
     }),
-    
     limits:{
         fileSize: maxSizeFile
     },
-
     fileFilter: (req, file, cb) => {
         const allowedMimes = [
             'image/jpeg',
@@ -34,10 +41,6 @@ let config = {
         if(allowedMimes.includes(file.mimetype)){
             cb(null, true)
         }
-        // else if (size > maxSizeFile){
-        //     console.log(req.file.size)
-        //     cb(new multer.MulterError(null, `Tamanho de arquivo ultrapassa ${maxSizeFile} bytes`))
-        // }
-        else cb(new multer.MulterError(null, 'Tipo de arquivo de foto nao permitido'))
+        else cb(new multer.MulterError('LIMIT_UNEXPECTED_FILE', null))
     }
 }
