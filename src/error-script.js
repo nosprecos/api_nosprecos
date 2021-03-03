@@ -1,28 +1,37 @@
 module.exports = {
-    no_username: 'Login de usuário nao informado',
-    min_char_user: 'Login de usuário não atinge número de char mínimo',
-    max_char_user: 'Login de usuário passou do valor máximo',
-    existing_username: 'Login de usuário ja utilizado',
 
-    no_realname: 'Nome de usuário nao informado',
-    max_char_name: 'Nome de usuário passou do valor máximo',
+    //Username error:
+    NO_USERNAME: 'Login de usuário nao informado',
+    MIN_CHAR_USER: 'Login de usuário não atinge número de char mínimo',
+    MAX_CHAR_USER: 'Login de usuário passou do valor máximo',
+    EXISTING_USER: 'Login de usuário ja utilizado',
+    INVALID_ASCII: 'Nome de usuario possui character nao permitido',
 
-    no_password: 'Senha de usuário nao informado',
-    no_confirm_pass: 'Senha de confirmacao de usuário nao informado',
-    mismatch_password: 'Senhas não são iguais',
-    not_secured_password: 'Senha não está conforme nivel de segurança',
-    wrong_password: 'Senha de usuário está incorreta',
+    //Realname error:
+    NO_REALNAME: 'Nome de usuário nao informado',
+    MAX_CHAR_NAME: 'Nome de usuário passou do valor máximo',
 
-    no_email: 'Email de usuário não informado',
-    existing_email: 'Email de usuário já utilizado',
-    invalid_email: 'Email de usuário inválido',
+    //Password error:
+    NO_PASSWORD: 'Senha de usuário nao informado',
+    NO_CONFIRM_PASSWORD: 'Senha de confirmacao de usuário nao informado',
+    MISMATCH_PASSWORD: 'Senhas não são iguais',
+    NOT_SECURE_PASSWORD: 'Senha não está conforme nivel de segurança',
+    WRONG_PASSWORD: 'Senha de usuário está incorreta',
 
-    cant_find_customer: 'Não foi possível encontrar customer',
-    login_failed: 'Usuário ou senha incorreta',
-    no_login_name: 'Nome ou email de usuário não informado',
+    //Email error:
+    NO_EMAIL: 'Email de usuário não informado',
+    EXISTING_EMAIL: 'Email de usuário já utilizado',
+    INVALID_EMAIL: 'Email de usuário inválido',
 
-    length_id: 'Tamanho do ID informado incorreto',
+    //User authentication error:
+    CANT_FIND_CUSTOMER: 'Não foi possível encontrar customer',
+    LOGIN_FAILED: 'Usuário ou senha incorreta',
+    NO_LOGIN_NAME: 'Nome ou email de usuário não informado',
 
-    max_char_WhatsApp: 'Número do WhatsApp passou do valor máximo'
+    LENGTH_ID: 'Tamanho do ID informado incorreto',
+
+    MAX_CHAR_WHATSAPP: 'Número do WhatsApp passou do valor máximo',
+
+    UPLOAD_IMG_FAILED: 'Imagem de perfil falhou ao ser atualizada'
 
 }

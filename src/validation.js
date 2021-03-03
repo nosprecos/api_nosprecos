@@ -1,8 +1,7 @@
 const passwordValidator = require('password-validator')
-const emailValidator = require("email-validator")
 
 /**
- * Check if a variable holds a null a throw a message
+ * Check if a variable holds a null/undef value a throw a message
  * @param {AnyType} value 
  * @param {String} msg 
  */
@@ -14,7 +13,7 @@ function existsOrError(value, msg){
 }
 
 /**
- * Check if a variable holds a null a throw a message
+ * Check if a variable holds a null and throw a message
  * @param {AnyType} value 
  * @param {String} msg 
  */
@@ -26,6 +25,50 @@ function notExistsOrError(value, msg){
         return
     }
     throw msg
+}
+
+/**
+ * Returns a boolean indicating if a value holds a null/undef
+ * @param {String} value 
+ * @param {Array} value
+ * @param {Char} value
+ */
+
+function exists(value){
+    if(!value && value !== "") return false
+    else if(Array.isArray(value) && value.lenght === 0) return true
+    else if(typeof value === 'string' && !value.trim()) return true
+    else return true
+}
+
+/**
+ * Interate an object eliminating any null/undef property
+ * @param {Object} obj 
+ */
+
+function cleanUndefNull(obj){
+    for (let prop in obj){
+        if(obj[prop] === null || obj[prop] === undefined){
+            delete obj[prop]
+        }
+    }
+    return obj
+}
+
+/**
+ * Check if a string has an ascii value within a certain range
+ * and throw a msg in case of contrary.
+ * @param {String} str 
+ * @param {String} msg 
+ */
+
+function hasValidAscii(str, msg){
+    for (let i=0; i<str.length; i++){
+        if(str.charCodeAt(i) < 32 || str.charCodeAt(i) > 126){
+            throw msg
+        }
+    return
+    }
 }
 
 /**
@@ -47,7 +90,7 @@ function equalsOrError(valueA, valueB, msg){
  * @param {String} msg 
  */
 
-function maxMinEquals (type, target, value, msg){
+function maxMinEqualsLength (type, target, value, msg){
     if(type === 'max' || type === 'MAX'){
         if(value.length > target) throw msg
     }
@@ -96,8 +139,18 @@ function securedPassword (securityLevel, value, msg){
     }
 }   
 
+/**
+ * Regex check for email validation
+ * @param {String} value 
+ * @param {String} msg 
+ */
+
 function verifyEmail(value, msg){
-    if(!emailValidator.validate(value)) throw msg
+    if(!(/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+        .test(value))){
+        throw msg
+    }
 }
 
-module.exports = {existsOrError, notExistsOrError, equalsOrError, maxMinEquals, securedPassword, verifyEmail}
+module.exports = {existsOrError, exists, notExistsOrError, cleanUndefNull, 
+    equalsOrError, maxMinEqualsLength, securedPassword, verifyEmail, hasValidAscii}

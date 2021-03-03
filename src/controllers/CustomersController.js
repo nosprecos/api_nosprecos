@@ -1,6 +1,7 @@
 const axios = require('axios')
 const Customers = require('../models/customers')
-const {existsOrError, notExistsOrError, equalsOrError, maxMinEquals, securedPassword, verifyEmail} = require('../validation')
+const {existsOrError, exists, notExistsOrError, cleanUndefNull, equalsOrError, 
+        maxMinEqualsLength, securedPassword, verifyEmail, hasValidAscii} = require('../validation')
 const bcrypt = require('bcryptjs')
 const error = require('../error-script')
 const {prepImg} = require('../utils/utils')
@@ -14,8 +15,8 @@ module.exports = {
         } = req.body
 
         try{
-            existsOrError(userLogin, error.no_login_name)
-            existsOrError(userPassword, error.no_password)
+            existsOrError(userLogin, error.NO_LOGIN_NAME)
+            existsOrError(userPassword, error.NO_PASSWORD)
 
             const customer = [await Customers.findOne({userLoginName: userLogin}), 
                              await Customers.findOne({userEmailAddress: userLogin})]
@@ -24,16 +25,16 @@ module.exports = {
                 if(bcrypt.compareSync(userPassword, customer[0].userPassword))
                     return res.status(200).send(customer[0])
                 else
-                    throw error.login_failed
+                    throw error.LOGIN_FAILED
             }
             if(customer[1]){
                 if(bcrypt.compareSync(userPassword, customer[1].userPassword))
                     return res.status(200).send(customer[1])
                 else
-                    throw error.login_failed
+                    throw error.LOGIN_FAILED
             }
             else{
-                throw error.login_failed
+                throw error.LOGIN_FAILED
             }
         }
         catch(msg){
@@ -44,7 +45,7 @@ module.exports = {
     async get(req, res){
         try{
             const customer = await Customers.find()
-            existsOrError(customer, error.cant_find_customer)
+            existsOrError(customer, error.CANT_FIND_CUSTOMER)
             res.status(200).send(customer)
         }
         catch(msg){
@@ -57,7 +58,7 @@ module.exports = {
 
         try{
             const customer = await Customers.findOne(id)
-            existsOrError(customer, `${error.cant_find_customer} pela id: ${id}`)
+            existsOrError(customer, `${error.CANT_FIND_CUSTOMER} pela id: ${id}`)
             res.status(200).send(customer)
         }
         catch(msg){
@@ -67,99 +68,93 @@ module.exports = {
 
     async create(req, res){
         let customer
+        let user = req.body
         const { id } = req.params
-
         const encryptPassword = password => {
             const salt = bcrypt.genSaltSync(10)
             return hash = bcrypt.hashSync(password, salt)
         }
 
-        let user = req.body
-        let {
-            userLoginName,
-            userRealName,
-            userPassword,
-            userNewPassword,
-            userConfirmPassword,
-            userEmailAddress
-        } = req.body
-
         try{
+            existsOrError(user.userPassword, error.NO_PASSWORD)
 
-            existsOrError(userPassword, error.no_password)
-
-            if(!id){
-                existsOrError(userLoginName, error.no_username)
-                existsOrError(userRealName, error.no_realname)
-                existsOrError(userConfirmPassword, error.no_confirm_pass)
-                existsOrError(userEmailAddress, error.no_email)
+            if(!id){ //Pre-check for user signup
+                existsOrError(user.userLoginName, error.NO_USERNAME)
+                existsOrError(user.userRealName, error.NO_REALNAME)
+                existsOrError(user.userConfirmPassword, error.NO_CONFIRM_PASSWORD)
+                existsOrError(user.userEmailAddress, error.NO_EMAIL)
             }
 
-            else{
-                maxMinEquals('equals', ID_LENGTH_DB, id, error.length_id)
+            else{ //User info update
+                maxMinEqualsLength('equals', ID_LENGTH_DB, id, error.LENGTH_ID)
                 customer = await Customers.findOne({_id: id})
-                existsOrError(customer, `${error.cant_find_customer} pela id: ${id}`)
+                existsOrError(customer, `${error.CANT_FIND_CUSTOMER} pela id: ${id}`)
             }
 
-            if(userLoginName){
-                console.log('Entrou')
-                userLoginName = userLoginName.toLowerCase()
-                maxMinEquals('min', 5, userLoginName, error.min_char_user)
-                maxMinEquals('max', 30, userLoginName, error.max_char_user)
-                const customerLogin = await Customers.findOne({userLoginName: userLoginName})
-                notExistsOrError(customerLogin, error.existing_username)
+            if(exists(user.userLoginName)){
+                hasValidAscii(user.userLoginName, error.INVALID_ASCII)
+                user.userLoginName = user.userLoginName.toLowerCase().trim()
+                maxMinEqualsLength('min', 5, user.userLoginName, error.MIN_CHAR_USER)
+                maxMinEqualsLength('max', 30, user.userLoginName, error.MAX_CHAR_USER)
+                const customerLogin = await Customers.findOne({userLoginName: user.userLoginName})
+                notExistsOrError(customerLogin, error.EXISTING_USER)
             }
 
-            if(userRealName) maxMinEquals('max', 60, userRealName, error.max_char_name)
-
-            if(userEmailAddress){
-                console.log(userEmailAddress)
-                userEmailAddress = userEmailAddress.toLowerCase()
-                const customerEmail = await Customers.findOne({userEmailAddress: userEmailAddress})
-                notExistsOrError(customerEmail, error.existing_email)
-                verifyEmail(userEmailAddress, error.invalid_email)
+            if(exists(user.userRealName)){
+                 maxMinEqualsLength('max', 60, user.userRealName, error.MAX_CHAR_NAME)
             }
 
-            if(!id){
-                equalsOrError(userPassword, userConfirmPassword, error.mismatch_password)
-                securedPassword(3, userPassword, error.not_secured_password)
-                userPassword = encryptPassword(userPassword)
-                delete userConfirmPassword
+            if(exists(user.userEmailAddress)){
+                user.userEmailAddress = user.userEmailAddress.toLowerCase().trim()
+                verifyEmail(user.userEmailAddress, error.INVALID_EMAIL)
+                const customerEmail = await Customers.findOne({userEmailAddress: user.userEmailAddress})
+                notExistsOrError(customerEmail, error.EXISTING_EMAIL)
+            }
+
+            if(!id){ //Create user on DB
+                equalsOrError(user.userPassword, user.userConfirmPassword, error.MISMATCH_PASSWORD)
+                securedPassword(3, user.userPassword, error.NOT_SECURE_PASSWORD)
+                user.userPassword = encryptPassword(user.userPassword)
+                delete user.userConfirmPassword
 
                 customer = await Customers.create({
-                    userLoginName,
-                    userRealName,
-                    userPassword,
-                    userEmailAddress
+                    userLoginName: user.userLoginName,
+                    userRealName: user.userRealName,
+                    userPassword: user.userPassword,
+                    userEmailAddress: user.userEmailAddress
                 })
             }
 
-            if(userNewPassword){
-                existsOrError(userConfirmPassword, error.no_confirm_pass)
-                equalsOrError(userNewPassword, userConfirmPassword, error.mismatch_password)
-                securedPassword(3, userNewPassword, error.not_secured_password)
-                user.userPassword = encryptPassword(userNewPassword)
-                delete user.userNewPassword
-                delete userConfirmPassword
+            if(exists(user.userNewPassword)){
+                existsOrError(userConfirmPassword, error.NO_CONFIRM_PASSWORD)
+                equalsOrError(user.userNewPassword, userConfirmPassword, error.MISMATCH_PASSWORD)
+                securedPassword(3, user.userNewPassword, error.NOT_SECURE_PASSWORD)
+                user.userPassword = encryptPassword(user.userNewPassword)
+                delete user.userNewPassword, 
+                delete user.userConfirmPassword
             }
 
-            if(user.userWhatsAppUrl){
-                maxMinEquals('max', 15, user.userWhatsAppUrl, error.max_char_WhatsApp)
+            if(exists(user.userWhatsAppUrl)){
+                maxMinEqualsLength('max', 15, user.userWhatsAppUrl, error.MAX_CHAR_WHATSAPP)
             }
 
-            if(id && userNewPassword){
-                if(bcrypt.compareSync(userPassword, customer.userPassword))
-                    customer = await Customers.findOneAndUpdate({_id: id}, user, {new: true})
+            if(id && user.userNewPassword){
+                if(bcrypt.compareSync(user.userPassword, customer.userPassword)){
+                    user = cleanUndefNull(user)
+                    customer = await Customers.findOneAndUpdate({_id: id}, user, {new: true, omitUndefined: true})
+                }    
                 else
-                    throw error.wrong_password
+                    throw error.WRONG_PASSWORD
             }
-            else if(id){
-                if(bcrypt.compareSync(userPassword, customer.userPassword)){
+
+            if(id){
+                if(bcrypt.compareSync(user.userPassword, customer.userPassword)){
                     delete user.userPassword
-                    customer = await Customers.findOneAndUpdate({_id: id}, user, {new: true})
+                    user = cleanUndefNull(user)
+                    customer = await Customers.findOneAndUpdate({_id: id}, user, {new: true, omitUndefined: true})
                 }
                 else
-                    throw error.wrong_password
+                    throw error.WRONG_PASSWORD
             }
             
             res.status(200).send(customer)   
@@ -175,16 +170,16 @@ module.exports = {
         let customer
 
         try{
-            maxMinEquals('equals', ID_LENGTH_DB, id, error.length_id)
+            maxMinEqualsLength('equals', ID_LENGTH_DB, id, error.LENGTH_ID)
             customer = await Customers.findOne({_id: id}) //Get customer to verify password
-            existsOrError(customer, `${error.cant_find_customer} pela id: ${id}`)
-            existsOrError(userPassword, error.no_password)
+            existsOrError(customer, `${error.CANT_FIND_CUSTOMER} pela id: ${id}`)
+            existsOrError(userPassword, error.NO_PASSWORD)
             if(bcrypt.compareSync(userPassword, customer.userPassword)){
                 customer = await Customers.findOneAndRemove({_id: id})
                 res.status(200).send('Usuário deletado com sucesso')
             }
             else
-                throw error.login_failed
+                throw error.LOGIN_FAILED
         }
         catch(msg){
             return res.status(400).send(msg)
@@ -194,10 +189,10 @@ module.exports = {
     async photo(req, res){
         const { id } = req.params
         try{
-            const imgBase64 = await prepImg(req.file.path, 200, 'Deu erro de imagem') //prepImg to make file ready to be inserted into DB
-            maxMinEquals('equals', ID_LENGTH_DB, id, error.length_id)
+            const imgBase64 = await prepImg(req.file.path, 200, UPLOAD_IMG_FAILED) //prepImg to make file ready to be inserted into DB
+            maxMinEqualsLength('equals', ID_LENGTH_DB, id, error.LENGTH_ID)
             const customer = await Customers.findOneAndUpdate({_id: id}, {userProfilePicture: imgBase64}, {new: true})
-            existsOrError(customer, `${error.cant_find_customer} pela id: ${id}`)
+            existsOrError(customer, `${error.CANT_FIND_CUSTOMER} pela id: ${id}`)
             res.status(200).send(customer)
         }
         catch(msg){
