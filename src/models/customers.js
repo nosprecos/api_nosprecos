@@ -15,10 +15,10 @@ const CustomersSchema = new mongoose.Schema({
         maxlength: 60
     },
 
-    userProfilePicture:{
+    userProfilePicture: {
         type: String,
     },
-    
+
     userPassword: {
         type: String,
         require: true,

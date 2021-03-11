@@ -8,7 +8,7 @@ routes.post('/signin', CustomersController.authenticate)
 routes.post('/customer/update/photo/:id', middleware.uploadImg, CustomersController.photo)
 routes.get('/customer/list', CustomersController.getOne)
 routes.get('/customers', CustomersController.get)
-routes.delete('/customer/remove/:id', CustomersController.remove)
+routes.post('/customer/remove/:id', CustomersController.remove)
 routes.put('/customer/update/:id', CustomersController.create)
 
 module.exports = routes
